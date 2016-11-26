@@ -21,7 +21,7 @@ contract token is owned {
 	uint tokenCounter;
 	mapping (uint => tokenStruct) tokenBalance;
 
-	event Minted (address minterID, uint amount, bool registered);
+	event Minted (address minterID, uint amount, uint tokenID);
 	event Transferred (address sender, address receiver, uint amount, uint tokenID);
 	event Activate (address sender, uint TokenID, bool active);
 
@@ -58,10 +58,18 @@ contract token is owned {
 		tokenBalance[tokenCounter].initialSupply = _amount;
 		tokenBalance[tokenCounter].accountBalance[msg.sender] = _amount;
 		accEnable(tokenCounter, msg.sender, true);
-		Minted (msg.sender, _amount, true);
+		Minted (msg.sender, _amount, _type);
 	}
 
-	function transfer (uint _tokenID, uint _amount, address _sender, address _receiver) onlyActive (_tokenID, _sender) checkAmount (_tokenID, _amount, _sender) {
+	function transfer (
+		uint _tokenID,
+		uint _amount,
+		address _sender,
+		address _receiver
+	)
+		onlyActive (_tokenID, _sender)
+		checkAmount (_tokenID, _amount, _sender)
+	{
 		if (tokenBalance[_tokenID].accountActive[_receiver] == false) accEnable (_tokenID, _receiver, true);
 		tokenBalance[_tokenID].accountBalance[_sender] -= _amount;
 		tokenBalance[_tokenID].accountBalance[_receiver] += _amount;
@@ -72,7 +80,17 @@ contract token is owned {
 		return (tokenBalance[_tokenID].coinType, tokenBalance[_tokenID].accountBalance[_sender], tokenBalance[_tokenID].accountActive[_sender]);
 	}
 
-	function tradeToken (uint sender_tokenID, uint sender_amount, address _sender, uint receiver_tokenID, uint receiver_amount, address _receiver) onlyActive (sender_tokenID, _sender) onlyActive (receiver_tokenID, _receiver){
+	function tradeToken (
+		uint sender_tokenID,
+		uint sender_amount,
+		address _sender,
+		uint receiver_tokenID,
+		uint receiver_amount,
+		address _receiver
+	)
+		onlyActive (sender_tokenID, _sender)
+		onlyActive (receiver_tokenID, _receiver)
+	{
 		transfer (sender_tokenID, sender_amount, _sender, _receiver);
 		transfer (receiver_tokenID, receiver_amount, _receiver, _sender);
 	}
